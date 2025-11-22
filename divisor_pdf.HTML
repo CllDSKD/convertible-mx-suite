@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divisor de PDF Visual | CONVERTIBLE MX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        // Configuración de worker para pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+
+    <style>
+        :root {
+            /* Paleta de colores FUTURISTA */
+            --mex-cempasuchil: #FFB700; /* AMARILLO VIBRANTE (Acción/Énfasis) */
+            --mex-green: #009c3b;
+            --mex-red: #ce1126;
+            --mex-white: #ffffff;
+            --mex-dark-bg: #111827; /* Deep Slate Gray */
+            --mex-container-bg: #1F2937; /* Darker Slate Gray */
+            --text-light: #F9FAFB; /* Título y texto principal en oscuro */
+            --text-dark: #374151; /* Texto en elementos claros */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* Fondo con degradado radial sutil para profundidad */
+            background: radial-gradient(circle at 50% 100%, #172031 0%, var(--mex-dark-bg) 70%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alineación superior para mejor scroll */
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: var(--mex-container-bg); 
+            width: 100%;
+            max-width: 900px;
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); 
+            overflow: hidden;
+            border: 1px solid #374151;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            padding: 40px 20px 25px 20px;
+            text-align: center;
+            background: var(--mex-container-bg); 
+            border-bottom: 1px dashed #374151;
+        }
+
+        h1 {
+            color: var(--text-light);
+            margin: 0;
+            font-weight: 900;
+            font-size: 2.5rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px; 
+            text-shadow: 0 0 10px rgba(255, 183, 0, 0.6); 
+        }
+
+        p.subtitle {
+            color: #9CA3AF; 
+            font-size: 1.1rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* --- ZONA DE CARGA DE ARCHIVOS --- */
+        .upload-zone {
+            border: 3px dashed #374151; 
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            background-color: #2D3748; 
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--mex-cempasuchil);
+            background-color: #374151;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--mex-red); 
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .upload-file-input {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        /* --- FIN ZONA DE CARGA DE ARCHIVOS --- */
+
+        /* --- BARRA DE CONTROL Y CUADRÍCULA DE PÁGINAS --- */
+        
+        #controlsBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-bottom: 15px;
+        }
+        
+        .selection-button {
+            background-color: var(--mex-green);
+            color: var(--mex-white);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .selection-button i {
+            margin-right: 5px;
+        }
+        
+        .selection-button:hover {
+            background-color: #008a34;
+        }
+        
+        #pageSelectionGrid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            padding: 15px;
+            border: 1px solid #374151; 
+            border-radius: 15px;
+            max-height: 400px; 
+            overflow-y: auto;
+            background-color: #2D3748; 
+        }
+        
+        .page-thumbnail-container {
+            position: relative;
+            width: 100px;
+            padding: 5px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            background-color: #1F2937; 
+            box-sizing: content-box; 
+        }
+
+        .page-thumbnail-container:hover {
+            background-color: #374151;
+        }
+        
+        .page-thumbnail-container.selected {
+            border-color: var(--mex-cempasuchil);
+            background-color: #374151;
+            box-shadow: 0 0 5px rgba(255, 183, 0, 0.8);
+        }
+
+        .page-thumbnail-container canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+
+        .page-number {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--mex-white);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        
+        /* --- ZONA DE REORDENAMIENTO --- */
+        #reorderSection {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid var(--mex-cempasuchil);
+            border-radius: 15px;
+            background-color: #2D3748; 
+            display: none; 
+            text-align: center;
+        }
+        
+        #reorderZone {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            min-height: 120px; 
+        }
+
+        .reorder-item {
+            cursor: grab;
+            opacity: 1;
+            transition: opacity 0.2s;
+        }
+        
+        .reorder-item.page-thumbnail-container {
+            border-color: #888; 
+            background-color: var(--mex-white); 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .reorder-item.dragging {
+            opacity: 0.5;
+            border: 2px dashed var(--mex-red);
+        }
+        /* --- FIN ZONA DE REORDENAMIENTO --- */
+
+        /* --- ESTILOS DE INPUT --- */
+        .settings-box {
+            background-color: #2D3748; 
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid #374151;
+        }
+        
+        input[type="password"], input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #555; 
+            border-radius: 10px;
+            box-sizing: border-box;
+            margin-top: 5px; 
+            font-size: 1.05rem;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #374151; 
+            color: var(--text-light); 
+        }
+        
+        /* Contenedor del campo de contraseña */
+        .password-wrapper {
+            position: relative;
+            margin-top: 5px;
+        }
+        
+        .password-wrapper input {
+            padding-right: 40px; 
+        }
+
+        /* Icono de mostrar/ocultar */
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9CA3AF;
+            font-size: 1.1rem;
+            padding: 5px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--mex-cempasuchil);
+        }
+        
+        select {
+            appearance: none; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23F9FAFB" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+        .btn-action {
+            background-color: var(--mex-cempasuchil);
+            color: #3d2c00;
+            width: 100%;
+            padding: 22px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 6px 0 #d99b00, 0 0 20px rgba(255, 183, 0, 0.5); 
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #d99b00, 0 0 25px rgba(255, 183, 0, 0.8);
+            background-color: #ffc11a;
+        }
+
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d99b00;
+        }
+        
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 6px 0 #d99b00, 0 0 10px rgba(255, 183, 0, 0.3);
+        }
+
+        /* --- BARRA DE ESTADO --- */
+        #progressContainer {
+            margin-top: 15px;
+            display: none; 
+            text-align: center;
+        }
+
+        #progressBar {
+            height: 18px;
+            background-color: #374151;
+            border-radius: 9px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        #progressFill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--mex-cempasuchil);
+            transition: width 3s linear; 
+            border-radius: 9px 0 0 9px;
+            box-shadow: 0 0 10px rgba(255, 183, 0, 0.8);
+        }
+        
+        #progressText {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            font-size: 0.95rem;
+            color: #9CA3AF; 
+            font-weight: 600;
+            background: var(--mex-container-bg);
+            border-top: 1px dashed #374151;
+        }
+        
+        /* ======================================= */
+        /* === RESPONSIVE DESIGN (MÓVIL) === */
+        /* ======================================= */
+        @media (max-width: 900px) {
+            
+            /* Ajuste del Grid en pantallas de Tablet/Horizontal */
+            #pageSelectionGrid {
+                gap: 10px; 
+                padding: 10px;
+            }
+            
+            .page-thumbnail-container {
+                width: 80px; /* Reducir ligeramente en tabletas */
+                padding: 4px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            
+            body {
+                padding: 10px;
+                min-height: auto;
+            }
+
+            .app-container {
+                border-radius: 15px;
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 30px 15px 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+
+            .content-area {
+                padding: 20px 15px;
+            }
+            
+            label {
+                font-size: 1.0rem;
+            }
+            
+            /* 1. Barra de Controles (Botones) */
+            #controlsBar {
+                flex-direction: column; /* Apilar en vertical */
+                gap: 10px;
+            }
+            
+            #controlsBar > div {
+                 width: 100%;
+                 display: flex;
+                 justify-content: space-between;
+            }
+            
+            .selection-button {
+                flex-grow: 1; /* Ocupar el espacio disponible */
+                padding: 12px 10px;
+                font-size: 0.9rem;
+                margin-right: 0 !important;
+                justify-content: center;
+            }
+
+            /* 2. Grid de Miniaturas */
+            #pageSelectionGrid, #reorderZone {
+                padding: 10px;
+                max-height: 300px; 
+                /* Forzar las miniaturas a ser más pequeñas */
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(65px, 1fr)); /* 65px de mínimo */
+                gap: 8px;
+            }
+            
+            .page-thumbnail-container {
+                width: auto; /* Dejar que el grid controle el tamaño */
+                padding: 3px;
+            }
+
+            /* 3. Ajustes (Settings Box) */
+            .settings-box {
+                padding: 20px 15px;
+                margin-top: 20px;
+            }
+            
+            .settings-box input, .settings-box select {
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+            
+            .password-wrapper input {
+                 padding-right: 30px; /* Reducir padding derecho */
+            }
+
+            .password-toggle {
+                right: 10px; /* Ajustar posición del ojo */
+                font-size: 1.0rem;
+            }
+
+            /* 4. BOTÓN DE ACCIÓN */
+            .btn-action {
+                padding: 18px;
+                font-size: 1.2rem;
+                margin-top: 25px;
+                box-shadow: 0 4px 0 #d99b00; 
+            }
+            
+            .btn-action:hover {
+                 transform: translateY(-1px);
+                 box-shadow: 0 5px 0 #d99b00;
+            }
+            
+            .btn-action:active {
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #d99b00;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>Divisor de PDF Visual</h1>
+            <p class="subtitle">Selecciona, extrae y reordena las páginas del documento.</p>
+        </div>
+
+        <div class="content-area">
+            <label>Arrastra el archivo PDF a dividir:</label>
+            
+            <div class="upload-zone" id="drop-area">
+                <input type="file" id="fileInput" class="upload-file-input" 
+                       accept="application/pdf" onchange="addFile(this.files)">
+                
+                <i class="fa-solid fa-scissors upload-icon"></i>
+                <p class="upload-text">Arrastra y suelta o haz clic para subir.</p>
+                <p style="font-size: 0.9rem; color: #9CA3AF;">Soporte: 1 archivo PDF únicamente.</p>
+            </div>
+
+            <div id="fileInfo" style="display: none; text-align: center; margin-bottom: 15px; font-size: 1.1rem; font-weight: 700; color: var(--text-light);">
+                </div>
+
+            <div id="controlsBar" style="display: none;">
+                <div style="display: flex;">
+                    <button class="selection-button" onclick="selectAllPages()">
+                        <i class="fa-solid fa-square-check"></i> Seleccionar Todo
+                    </button>
+                    <button class="selection-button" onclick="deselectAllPages()" style="background-color: #777;">
+                        <i class="fa-solid fa-square"></i> Deseleccionar Todo
+                    </button>
+                </div>
+                <button class="selection-button" onclick="invertSelection()" style="background-color: var(--mex-cempasuchil); color: #3d2c00;">
+                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Invertir Selección
+                </button>
+            </div>
+
+            <div id="pageSelectionGrid">
+                <p style="color: #9CA3AF; font-style: italic; margin: 30px;">Sube un PDF para ver la previsualización y seleccionar las páginas.</p>
+            </div>
+            
+            <div id="reorderSection" style="display: none;">
+                <label style="text-align: center; margin-bottom: 0; color: var(--text-light);">
+                    <i class="fa-solid fa-grip-lines"></i> Arrastra y Suelta para Reordenar el PDF Final
+                </label>
+                <div id="reorderZone">
+                    </div>
+            </div>
+            
+            <div class="settings-box">
+                
+                <label for="outputMode" style="font-weight: 700; margin-bottom: 5px; color: var(--text-light);">📦 Modo de Salida:</label>
+                <select id="outputMode" style="margin-bottom: 20px;" onchange="updateReorderZone(); toggleNamingTemplate();">
+                    <option value="individual">Extraer como archivos individuales (N archivos)</option>
+                    <option value="merged">Unir las seleccionadas en un solo PDF (1 archivo)</option>
+                </select>
+
+                <div id="namingTemplateSection" style="display: none; margin-bottom: 20px;">
+                    <label for="namingTemplate" style="font-weight: 700; margin-top: 5px; color: var(--text-light);">📝 Plantilla de Nombres (Archivos Individuales):</label>
+                    <input type="text" id="namingTemplate" placeholder="Ej: Extracto_[NUMERO]_MX" value="pagina_[NUMERO]">
+                    <small style="color: #9CA3AF; display: block; margin-top: 5px;">Usa [NUMERO] para insertar el número de página.</small>
+                </div>
+                <label style="color: var(--text-light);">🔒 Protección con Contraseña (PDFs de Salida):</label>
+                <div class="password-wrapper">
+                    <input type="password" id="outputPassword" placeholder="Contraseña para los PDFs resultantes (Opcional)">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('outputPassword', this)"></i>
+                </div>
+            </div>
+
+            <button class="btn-action" id="actionButton" onclick="dividirPDF()">
+                DIVIDIR PDF Y DESCARGAR
+            </button>
+            
+            <div id="progressContainer">
+                <p id="progressText">Iniciando proceso de división...</p>
+                <div id="progressBar">
+                    <div id="progressFill"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Hecho en México | CONVERTIBLE MX
+        </div>
+    </div>
+
+    <script>
+        let loadedFile = null; 
+        let pdfData = null; 
+        let totalPages = 0;
+        let selectedPages = new Set(); 
+        let loadedPDF = null; 
+        let draggedItem = null; 
+        let reorderedPageNumbers = []; 
+
+        const dropArea = document.getElementById('drop-area');
+        const fileInfo = document.getElementById('fileInfo');
+        const controlsBar = document.getElementById('controlsBar');
+        const pageSelectionGrid = document.getElementById('pageSelectionGrid');
+        const reorderSection = document.getElementById('reorderSection');
+        const reorderZone = document.getElementById('reorderZone');
+        const outputModeSelector = document.getElementById('outputMode');
+        const namingTemplateSection = document.getElementById('namingTemplateSection');
+        const actionButton = document.getElementById('actionButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+
+
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconElement.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        function toggleNamingTemplate() {
+            const outputMode = outputModeSelector.value;
+            if (outputMode === 'individual') {
+                namingTemplateSection.style.display = 'block';
+            } else {
+                namingTemplateSection.style.display = 'none';
+            }
+        }
+
+        function updateInfoLabel() {
+            if (loadedFile) {
+                fileInfo.innerHTML = `Archivo: <strong>${loadedFile.name}</strong> (${totalPages} páginas) | 
+                                      Seleccionadas: <strong style="color: var(--mex-cempasuchil);">${selectedPages.size}</strong>`;
+                fileInfo.style.display = 'block';
+                controlsBar.style.display = 'flex';
+            } else {
+                fileInfo.style.display = 'none';
+                controlsBar.style.display = 'none';
+                pageSelectionGrid.innerHTML = `<p style="color: #9CA3AF; font-style: italic; margin: 30px;">Sube un PDF para ver la previsualización y seleccionar las páginas.</p>`;
+            }
+            updateReorderStateLogic(); 
+            updateReorderZone(); 
+        }
+
+        function selectPage(pageNumber, element) {
+            if (selectedPages.has(pageNumber)) {
+                selectedPages.delete(pageNumber);
+                element.classList.remove('selected');
+            } else {
+                selectedPages.add(pageNumber);
+                element.classList.add('selected');
+            }
+            updateInfoLabel(); 
+        }
+        
+        async function createThumbnail(pageNumber, pdfInstance, isReorder = false) {
+            const page = await pdfInstance.getPage(pageNumber);
+            const viewport = page.getViewport({ scale: 0.2 }); 
+            
+            const container = document.createElement('div');
+            container.className = 'page-thumbnail-container';
+            container.dataset.pageNumber = pageNumber; 
+            
+            if (isReorder) {
+                container.classList.add('reorder-item');
+                container.setAttribute('draggable', 'true');
+                container.addEventListener('dragstart', handleDragStart);
+                container.addEventListener('dragover', handleDragOver);
+                container.addEventListener('drop', handleDrop);
+                container.addEventListener('dragend', handleDragEnd);
+            } else {
+                container.setAttribute('onclick', `selectPage(${pageNumber}, this)`);
+                if (selectedPages.has(pageNumber)) {
+                    container.classList.add('selected');
+                }
+            }
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+
+            container.appendChild(canvas);
+            container.innerHTML += `<span class="page-number">${pageNumber}</span>`;
+            return container;
+        }
+
+        async function renderPageGrid() {
+            pageSelectionGrid.innerHTML = '<p style="color: var(--text-light);"><i class="fa-solid fa-spinner fa-spin"></i> Cargando miniaturas...</p>';
+
+            loadedPDF = await pdfjsLib.getDocument({ data: pdfData }).promise;
+            totalPages = loadedPDF.numPages;
+            selectedPages.clear(); 
+            reorderedPageNumbers = []; 
+            pageSelectionGrid.innerHTML = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const thumbnail = await createThumbnail(i, loadedPDF, false);
+                pageSelectionGrid.appendChild(thumbnail);
+            }
+            updateInfoLabel();
+        }
+
+        function updateReorderStateLogic() {
+            let preservedOrder = reorderedPageNumbers.filter(pn => selectedPages.has(pn));
+            let newlySelected = Array.from(selectedPages).filter(pn => !preservedOrder.includes(pn)).sort((a, b) => a - b);
+            reorderedPageNumbers = preservedOrder.concat(newlySelected);
+        }
+        
+        async function updateReorderZone() {
+            reorderZone.innerHTML = ''; 
+            const outputMode = outputModeSelector.value;
+            
+            if (outputMode === 'merged' && selectedPages.size > 0 && loadedPDF) {
+                reorderSection.style.display = 'block';
+                
+                for (const pageNum of reorderedPageNumbers) {
+                    const thumbnail = await createThumbnail(pageNum, loadedPDF, true); 
+                    reorderZone.appendChild(thumbnail);
+                }
+            } else {
+                reorderSection.style.display = 'none';
+            }
+        }
+
+        /* --- LÓGICA DRAG AND DROP ESTABILIZADA --- */
+        
+        function handleDragStart(e) {
+            draggedItem = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+            
+            const target = e.target.closest('.reorder-item');
+
+            if (target && target !== draggedItem && target.parentNode === reorderZone) {
+                
+                const rect = target.getBoundingClientRect();
+                const center = (rect.left + rect.right) / 2;
+                
+                if (e.clientX < center) {
+                    reorderZone.insertBefore(draggedItem, target);
+                } 
+                else {
+                    reorderZone.insertBefore(draggedItem, target.nextSibling);
+                }
+            }
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            reorderedPageNumbers = Array.from(reorderZone.children).map(el => parseInt(el.dataset.pageNumber));
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedItem = null;
+        }
+        
+        function selectAllPages() {
+            if (totalPages > 0) {
+                for (let i = 1; i <= totalPages; i++) {
+                    selectedPages.add(i);
+                }
+                document.querySelectorAll('#pageSelectionGrid .page-thumbnail-container').forEach(el => {
+                    el.classList.add('selected');
+                });
+                updateInfoLabel();
+            }
+        }
+        
+        function deselectAllPages() {
+            selectedPages.clear();
+            document.querySelectorAll('#pageSelectionGrid .page-thumbnail-container').forEach(el => {
+                el.classList.remove('selected');
+            });
+            updateInfoLabel();
+        }
+        
+        function invertSelection() {
+            if (totalPages > 0) {
+                document.querySelectorAll('#pageSelectionGrid .page-thumbnail-container').forEach(el => {
+                    const pageNumber = parseInt(el.dataset.pageNumber);
+                    if (selectedPages.has(pageNumber)) {
+                        selectedPages.delete(pageNumber);
+                        el.classList.remove('selected');
+                    } else {
+                        selectedPages.add(pageNumber);
+                        el.classList.add('selected');
+                    }
+                });
+                updateInfoLabel();
+            }
+        }
+
+        async function addFile(files) {
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                const file = files[0];
+                const fileReader = new FileReader();
+
+                loadedFile = { name: file.name, fileObj: file };
+                
+                fileReader.onload = async () => {
+                    pdfData = fileReader.result; 
+                    await renderPageGrid(); 
+                };
+                fileReader.readAsArrayBuffer(file);
+            } else if (files.length > 0) {
+                 alert("Por favor, sube un archivo PDF válido para dividir.");
+            } else {
+                 loadedFile = null;
+                 pdfData = null;
+                 totalPages = 0;
+                 loadedPDF = null;
+                 reorderSection.style.display = 'none';
+            }
+            updateInfoLabel();
+        }
+        
+        // --- FUNCIÓN DE DIVISIÓN CON BARRA DE PROGRESO ---
+        function dividirPDF() {
+            if (!loadedFile) {
+                alert("¡Debes subir un archivo PDF antes de intentar dividirlo!");
+                return;
+            }
+            if (selectedPages.size === 0) {
+                alert("¡Debes seleccionar al menos una página para dividir!");
+                return;
+            }
+
+            const password = document.getElementById('outputPassword').value;
+            const outputMode = outputModeSelector.value;
+            
+            // Deshabilitar botón y mostrar barra
+            actionButton.disabled = true;
+            actionButton.textContent = "DIVIDIENDO ARCHIVO...";
+            progressContainer.style.display = 'block';
+            progressText.textContent = "Iniciando proceso de extracción...";
+            progressFill.style.width = '0%';
+            progressFill.style.transitionDuration = '0s'; // Reset transition
+
+            // Simulación de los pasos de división
+            setTimeout(() => {
+                progressText.textContent = `Paso 1/2: Extrayendo y reordenando ${selectedPages.size} páginas.`;
+                progressFill.style.transitionDuration = '1.5s'; 
+                progressFill.style.width = '60%';
+            }, 500);
+
+            setTimeout(() => {
+                progressText.textContent = `Paso 2/2: Empaquetando en modo ${outputMode.toUpperCase()} y aplicando seguridad...`;
+                progressFill.style.transitionDuration = '1.0s';
+                progressFill.style.width = '100%';
+            }, 2300);
+
+            setTimeout(() => {
+                // Finalizar proceso y mostrar resultado
+                finalizarProceso(outputMode, password);
+            }, 3500); 
+        }
+
+        function finalizarProceso(outputMode, password) {
+            let outputResult;
+            let finalPageOrder; 
+            let namingDetail = '';
+            
+            // Lógica de resultado para el alert
+            if (outputMode === 'merged') {
+                outputResult = "1 Archivo PDF (Fusionando las páginas seleccionadas)";
+                finalPageOrder = reorderedPageNumbers.join(', ');
+            } else {
+                const namingTemplate = document.getElementById('namingTemplate').value || 'pagina_[NUMERO]';
+                const exampleName = namingTemplate.replace('[NUMERO]', '001');
+                
+                outputResult = `${selectedPages.size} Archivos PDF individuales`;
+                finalPageOrder = Array.from(selectedPages).sort((a, b) => a - b).join(', ');
+                namingDetail = `Plantilla: ${namingTemplate} -> Ej: ${exampleName}.pdf\n`;
+            }
+
+            // Restablecer el estado
+            actionButton.disabled = false;
+            actionButton.textContent = "DIVIDIR PDF Y DESCARGAR";
+            progressContainer.style.display = 'none';
+            progressFill.style.width = '0%'; 
+
+            alert(`
+                Procesando División VISUAL Y REORDENADA [CONVERTIBLE MX]:
+                
+                Archivo Fuente: ${loadedFile.name}
+                Páginas Extraídas: ${selectedPages.size}
+                
+                --- OPCIONES DE SALIDA ---
+                Modo de Salida: ${outputMode.toUpperCase()} (${outputResult})
+                ${namingDetail}
+                Páginas y Orden: ${finalPageOrder}
+                Protección: ${password ? 'ACTIVADA' : 'NO USADA'}
+
+                ---
+                ESTADO: 🟢 SIMULACIÓN EXITOSA.
+            `);
+        }
+
+        
+        /* --- DRAG & DROP GLOBAL ESTABILIZADO (USANDO DOCUMENT) --- */
+        
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        }, false);
+
+        document.addEventListener('drop', handleGlobalDrop, false);
+
+        ['dragenter', 'dragleave'].forEach(eventName => {
+            dropArea.addEventListener(eventName, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                if (eventName === 'dragenter') {
+                    highlight(e);
+                } else if (eventName === 'dragleave') {
+                    unhighlight(e);
+                }
+            }, false);
+        });
+
+        function highlight(e) {
+            dropArea.style.borderColor = 'var(--mex-cempasuchil)'; 
+            dropArea.style.backgroundColor = '#374151'; 
+        }
+
+        function unhighlight(e) {
+            dropArea.style.borderColor = '#374151'; 
+            dropArea.style.backgroundColor = '#2D3748'; 
+        }
+
+        function handleGlobalDrop(e) {
+            e.preventDefault(); 
+            e.stopPropagation(); 
+            unhighlight(e); 
+            
+            let files = e.dataTransfer.files;
+            addFile(files); 
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateInfoLabel();
+            toggleNamingTemplate();
+            outputModeSelector.addEventListener('change', updateReorderZone);
+            outputModeSelector.addEventListener('change', toggleNamingTemplate);
+
+            reorderZone.addEventListener('dragover', handleDragOver);
+            reorderZone.addEventListener('drop', handleDrop);
+        });
+
+    </script>
+
+</body>
+</html>

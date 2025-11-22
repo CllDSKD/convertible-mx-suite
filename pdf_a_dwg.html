@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF a Plano CAD | CONVERTIBLE MX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Paleta de colores FUTURISTA */
+            --mex-cempasuchil: #FFB700; /* AMARILLO VIBRANTE (Acción/Énfasis) */
+            --mex-green: #009c3b;
+            --mex-red: #ce1126; /* Color de PDF */
+            --mex-blue-cad: #0056D6; /* Azul Oscuro para CAD/DWG */
+            --mex-white: #ffffff;
+            --mex-dark-bg: #111827; /* Deep Slate Gray */
+            --mex-container-bg: #1F2937; /* Darker Slate Gray */
+            --text-light: #F9FAFB; /* Título y texto principal en oscuro */
+            --text-dark: #374151; /* Texto en elementos claros */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* Fondo con degradado radial sutil para profundidad */
+            background: radial-gradient(circle at 50% 100%, #172031 0%, var(--mex-dark-bg) 70%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: var(--mex-container-bg); 
+            width: 100%;
+            max-width: 650px; 
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); 
+            overflow: hidden;
+            border: 1px solid #374151;
+        }
+
+        .header {
+            padding: 40px 20px 25px 20px;
+            text-align: center;
+            background: var(--mex-container-bg); 
+            border-bottom: 1px dashed #374151;
+        }
+
+        h1 {
+            color: var(--text-light); 
+            margin: 0;
+            font-weight: 900;
+            font-size: 2.5rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px; 
+            text-shadow: 0 0 10px rgba(255, 183, 0, 0.6); 
+        }
+
+        p.subtitle {
+            color: #9CA3AF; 
+            font-size: 1.1rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-light); 
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* --- ZONA DE CARGA DE ARCHIVOS --- */
+        .upload-zone {
+            border: 3px dashed #374151; 
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            background-color: #2D3748; 
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--mex-cempasuchil);
+            background-color: #374151;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--mex-red); /* Color de PDF */
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .upload-file-input {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        /* --- FIN ZONA DE CARGA DE ARCHIVOS --- */
+
+        /* --- LISTA DE ARCHIVOS --- */
+        #fileList li {
+            background: #374151; 
+            color: var(--text-light);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 1rem;
+            border-left: 5px solid var(--mex-red); 
+            list-style: none;
+            margin-top: 15px;
+        }
+        /* --- FIN LISTA DE ARCHIVOS --- */
+
+        /* --- SECCIÓN DE AJUSTES --- */
+        .settings-box {
+            background-color: #2D3748; 
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 1px solid #374151;
+        }
+
+        .settings-box select, .settings-box input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            background-color: #374151;
+            color: var(--text-light);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        .password-wrapper {
+            position: relative;
+            margin-top: 5px;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding: 15px 40px 15px 15px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            background-color: #374151;
+            color: var(--text-light);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9CA3AF;
+            font-size: 1.1rem;
+            padding: 5px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--mex-cempasuchil);
+        }
+
+        .btn-action {
+            background-color: var(--mex-cempasuchil);
+            color: #3d2c00;
+            width: 100%;
+            padding: 22px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 6px 0 #d99b00, 0 0 20px rgba(255, 183, 0, 0.5); 
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #d99b00, 0 0 25px rgba(255, 183, 0, 0.8);
+            background-color: #ffc11a;
+        }
+
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d99b00;
+        }
+        
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 6px 0 #d99b00, 0 0 10px rgba(255, 183, 0, 0.3);
+        }
+
+        /* --- BARRA DE ESTADO --- */
+        #progressContainer {
+            margin-top: 15px;
+            display: none; 
+            text-align: center;
+        }
+
+        #progressBar {
+            height: 18px;
+            background-color: #374151;
+            border-radius: 9px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        #progressFill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--mex-blue-cad); 
+            transition: width 4s linear; 
+            border-radius: 9px 0 0 9px;
+            box-shadow: 0 0 10px rgba(0, 86, 214, 0.8); 
+        }
+        
+        #progressText {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            font-size: 0.95rem;
+            color: #9CA3AF; 
+            font-weight: 600;
+            background: var(--mex-container-bg);
+            border-top: 1px dashed #374151;
+        }
+
+        /* ======================================= */
+        /* === RESPONSIVE DESIGN (MÓVIL) === */
+        /* ======================================= */
+        @media (max-width: 650px) {
+            
+            body {
+                padding: 10px;
+                min-height: auto;
+            }
+
+            .app-container {
+                border-radius: 15px;
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 30px 15px 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+
+            .content-area {
+                padding: 20px 15px;
+            }
+            
+            label {
+                font-size: 1.0rem;
+            }
+            
+            /* 1. Las columnas de opciones deben colapsar */
+            .settings-box > div {
+                flex-direction: column;
+                gap: 5px !important;
+            }
+
+            /* 2. AJUSTES (Settings Box) */
+            .settings-box {
+                padding: 20px 15px;
+                margin-top: 20px;
+            }
+            
+            .settings-box select, .settings-box input[type="number"], .password-wrapper input {
+                 padding: 12px 15px; /* Ajuste general de padding */
+                 font-size: 1.0rem;
+            }
+
+            .password-wrapper input {
+                padding-right: 40px; /* Mantener espacio para el toggle */
+            }
+            
+            /* 3. BOTÓN DE ACCIÓN */
+            .btn-action {
+                padding: 18px;
+                font-size: 1.2rem;
+                margin-top: 25px;
+                box-shadow: 0 4px 0 #d99b00; 
+            }
+            
+            .btn-action:hover {
+                 transform: translateY(-1px);
+                 box-shadow: 0 5px 0 #d99b00;
+            }
+            
+            .btn-action:active {
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #d99b00;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>PDF a Plano CAD</h1>
+            <p class="subtitle">Convierte archivos PDF vectoriales o rasterizados a formatos DWG o DXF.</p>
+        </div>
+
+        <div class="content-area">
+            <label>Sube el archivo PDF a convertir:</label>
+            
+            <div class="upload-zone" id="drop-area">
+                <input type="file" id="fileInput" class="upload-file-input" 
+                       accept=".pdf" onchange="addFile(this.files)">
+                
+                <i class="fa-solid fa-file-pdf upload-icon"></i>
+                <p class="upload-text">Arrastra y suelta o haz clic para subir un PDF.</p>
+                <p style="font-size: 0.9rem; color: #9CA3AF;">Solo se admite un archivo a la vez.</p>
+            </div>
+
+            <div id="fileList">
+                </div>
+
+            <div class="settings-box">
+                <label style="color: var(--text-light);">⚙️ Opciones Técnicas de Salida CAD:</label>
+
+                <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label for="outputFormat" style="font-weight: 500;">Formato de Salida:</label>
+                        <select id="outputFormat">
+                            <option value="dwg">DWG (AutoCAD)</option>
+                            <option value="dxf">DXF (Universal)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="cadVersion" style="font-weight: 500;">Versión de AutoCAD:</label>
+                        <select id="cadVersion">
+                            <option value="2024">AutoCAD 2024</option>
+                            <option value="2018">AutoCAD 2018</option>
+                            <option value="2013">AutoCAD 2013</option>
+                            <option value="2007">AutoCAD 2007</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label for="outputUnits" style="font-weight: 500;">Unidades de Salida:</label>
+                        <select id="outputUnits">
+                            <option value="mm">Milímetros (mm)</option>
+                            <option value="meters">Metros (m)</option>
+                            <option value="inches">Pulgadas (in)</option>
+                            <option value="feet">Pies (ft)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="scaleCorrection" style="font-weight: 500;">Factor de Escala (1:X):</label>
+                        <input type="number" id="scaleCorrection" value="1.0" min="0.01" step="0.1">
+                    </div>
+                </div>
+
+                <label for="layerMapping" style="font-weight: 500;">Mapeo y Organización de Capas:</label>
+                <select id="layerMapping" style="margin-bottom: 20px;">
+                    <option value="by_type">Separar por Tipo (Líneas, Textos, Imágenes)</option>
+                    <option value="single_layer">Una Capa Única (Simple)</option>
+                    <option value="by_color">Separar por Color (Avanzado)</option>
+                </select>
+
+                <label for="vectorHandling" style="font-weight: 500;">Manejo de Trazados e Imágenes:</label>
+                <select id="vectorHandling">
+                    <option value="vector_only">Solo Vectores (Líneas y Textos perfectos)</option>
+                    <option value="trace_all">Vectorizar Texto e Imágenes (Raster a Vector)</option>
+                    <option value="raster_keep">Mantener Imágenes Raster (como referencia)</option>
+                </select>
+
+                <label style="margin-top: 20px;">🔒 Contraseña del PDF Original (Si está protegido)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="pdfPassword" placeholder="Clave de desbloqueo">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('pdfPassword', this)"></i>
+                </div>
+
+            </div>
+
+            <button class="btn-action" id="actionButton" onclick="convertirPlanoCAD()">
+                CONVERTIR A DWG/DXF
+            </button>
+            
+            <div id="progressContainer">
+                <p id="progressText">Iniciando análisis del documento PDF...</p>
+                <div id="progressBar">
+                    <div id="progressFill"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Hecho en México | CONVERTIBLE MX
+        </div>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const actionButton = document.getElementById('actionButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        let loadedFile = null;
+
+        // Función de utilidad para mostrar/ocultar contraseña
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconElement.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        // Función para manejar la carga de un solo archivo
+        function addFile(files) {
+            if (files.length === 0) return;
+            
+            const file = files[0];
+            if (file.type !== 'application/pdf') {
+                 alert('Por favor, solo sube archivos PDF.');
+                 return;
+            }
+            
+            loadedFile = file;
+            displayFile(file);
+        }
+
+        function displayFile(file) {
+            fileList.innerHTML = `
+                <li>
+                    <i class="fa-solid fa-file-pdf" style="margin-right: 8px;"></i>
+                    ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                </li>
+            `;
+        }
+        
+        // --- FUNCIÓN DE CONVERSIÓN CON BARRA DE PROGRESO ---
+        function convertirPlanoCAD() {
+            if (!loadedFile) {
+                alert("¡Oye! Sube el archivo PDF del plano antes de convertir.");
+                return;
+            }
+            
+            const outputFormat = document.getElementById('outputFormat').value;
+            const cadVersion = document.getElementById('cadVersion').value;
+            const vectorHandling = document.getElementById('vectorHandling').value;
+            const outputUnits = document.getElementById('outputUnits').value;
+            const layerMapping = document.getElementById('layerMapping').value;
+            const scaleCorrection = document.getElementById('scaleCorrection').value;
+
+            // Deshabilitar botón y mostrar barra
+            actionButton.disabled = true;
+            actionButton.textContent = "PROCESANDO PLANO...";
+            progressContainer.style.display = 'block';
+            progressText.textContent = "Iniciando análisis del documento PDF...";
+            progressFill.style.width = '0%';
+            progressFill.style.transitionDuration = '0s'; // Reset transition
+            
+            // Paso 1: Análisis (1.0s)
+            setTimeout(() => {
+                progressText.textContent = "Paso 1/3: Desbloqueando y analizando estructura del PDF...";
+                progressFill.style.transitionDuration = '1.0s'; 
+                progressFill.style.width = '20%';
+            }, 300);
+
+            // Paso 2: Extracción y Conversión a Vector (3.0s)
+            setTimeout(() => {
+                progressText.textContent = `Paso 2/3: Extrayendo vectores, aplicando escala 1:${scaleCorrection} y generando líneas CAD...`;
+                progressFill.style.transitionDuration = '3.0s'; 
+                progressFill.style.width = '80%';
+            }, 1300);
+
+            // Paso 3: Optimización, Capas y Finalización (1.5s)
+            setTimeout(() => {
+                progressText.textContent = `Paso 3/3: Mapeando capas a ${layerMapping.toUpperCase()} y finalizando archivo ${outputFormat.toUpperCase()}...`;
+                progressFill.style.transitionDuration = '1.0s';
+                progressFill.style.width = '100%';
+            }, 4300); 
+
+            // Finalizar después de 5.5 segundos
+            setTimeout(() => {
+                finalizarProceso(outputFormat, cadVersion, vectorHandling, outputUnits, layerMapping, scaleCorrection);
+            }, 5500); 
+        }
+
+        function finalizarProceso(outputFormat, cadVersion, vectorHandling, outputUnits, layerMapping, scaleCorrection) {
+            const pdfPassword = document.getElementById('pdfPassword').value;
+
+            // Restablecer el estado
+            actionButton.disabled = false;
+            actionButton.textContent = "CONVERTIR A DWG/DXF";
+            progressContainer.style.display = 'none';
+            progressFill.style.width = '0%'; 
+
+            alert(`
+                Procesando [CONVERTIBLE MX - PDF A CAD]:
+                
+                --- RESULTADO ---
+                Archivo Original: ${loadedFile.name}
+                
+                --- OPCIONES FINALES ---
+                Formato/Versión: ${outputFormat.toUpperCase()} (${cadVersion})
+                Manejo de Trazados: ${vectorHandling.toUpperCase()}
+                Unidades del Plano: ${outputUnits.toUpperCase()}
+                Organización de Capas: ${layerMapping.toUpperCase()}
+                Factor de Escala: 1:${scaleCorrection}
+                Contraseña PDF: ${pdfPassword ? 'Usada' : 'No requerida'}
+
+                ---
+                ESTADO: 🟢 SIMULACIÓN EXITOSA.
+            `);
+        }
+
+        /* --- FUNCIONES DE DRAG & DROP --- */
+        
+        // 1. Evitar el comportamiento por defecto
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 2. Resaltar la zona 
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropArea.style.borderColor = 'var(--mex-cempasuchil)'; 
+            dropArea.style.backgroundColor = '#374151'; 
+        }
+
+        function unhighlight(e) {
+            dropArea.style.borderColor = '#374151'; 
+            dropArea.style.backgroundColor = '#2D3748'; 
+        }
+
+        // 3. Manejar la caída de archivos
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+
+            document.getElementById('fileInput').files = files; 
+            addFile(files);
+        }
+    </script>
+
+</body>
+</html>

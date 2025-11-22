@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oficina a PDF | CONVERTIBLE MX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Paleta de colores FUTURISTA */
+            --mex-cempasuchil: #FFB700; /* AMARILLO VIBRANTE (Acción/Énfasis) */
+            --mex-green: #009c3b;
+            --mex-red: #ce1126;
+            --mex-white: #ffffff;
+            --mex-dark-bg: #111827; /* Deep Slate Gray */
+            --mex-container-bg: #1F2937; /* Darker Slate Gray */
+            --text-light: #F9FAFB; /* Título y texto principal en oscuro */
+            --text-dark: #374151; /* Texto en elementos claros */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* Fondo con degradado radial sutil para profundidad */
+            background: radial-gradient(circle at 50% 100%, #172031 0%, var(--mex-dark-bg) 70%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: var(--mex-container-bg); /* Fondo oscuro del contenedor */
+            width: 100%;
+            max-width: 550px;
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); 
+            overflow: hidden;
+            border: 1px solid #374151;
+        }
+
+        .header {
+            padding: 40px 20px 25px 20px;
+            text-align: center;
+            background: var(--mex-container-bg); 
+            border-bottom: 1px dashed #374151;
+        }
+
+        h1 {
+            color: var(--text-light); /* Título blanco */
+            margin: 0;
+            font-weight: 900;
+            font-size: 2.5rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px; 
+            /* Efecto de brillo futurista amarillo */
+            text-shadow: 0 0 10px rgba(255, 183, 0, 0.6); 
+        }
+
+        p.subtitle {
+            color: #9CA3AF; 
+            font-size: 1.1rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-light); /* Labels claros */
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* --- ZONA DE CARGA DE ARCHIVOS --- */
+        .upload-zone {
+            border: 3px dashed #374151; 
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            background-color: #2D3748; /* Color oscuro más claro para contraste */
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--mex-cempasuchil);
+            background-color: #374151;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #2A5699; /* Icono azul de Office */
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .upload-file-input {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        /* --- FIN ZONA DE CARGA DE ARCHIVOS --- */
+
+        /* --- LISTA DE ARCHIVOS (MODERNA) --- */
+        #fileList ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #fileList li {
+            background: #374151; /* Fondo oscuro de la lista */
+            color: var(--text-light);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 1rem;
+            border-left: 5px solid var(--mex-green); /* Borde de éxito */
+        }
+        /* --- FIN LISTA DE ARCHIVOS --- */
+
+
+        .settings-box {
+            background-color: #2D3748; 
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 1px solid #374151;
+        }
+
+        /* Contenedor del campo de contraseña */
+        .password-wrapper {
+            position: relative;
+            margin-top: 5px;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding: 15px 40px 15px 15px; /* Ajuste para el icono */
+            border: 1px solid #555;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            background-color: #374151;
+            color: var(--text-light);
+        }
+        
+        /* Icono de mostrar/ocultar */
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9CA3AF;
+            font-size: 1.1rem;
+            padding: 5px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--mex-cempasuchil);
+        }
+
+        .btn-action {
+            background-color: var(--mex-cempasuchil);
+            color: #3d2c00;
+            width: 100%;
+            padding: 22px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 30px;
+            /* Sombra fuerte para el botón de acción */
+            box-shadow: 0 6px 0 #d99b00, 0 0 20px rgba(255, 183, 0, 0.5); 
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #d99b00, 0 0 25px rgba(255, 183, 0, 0.8);
+            background-color: #ffc11a;
+        }
+
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d99b00;
+        }
+        
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 6px 0 #d99b00, 0 0 10px rgba(255, 183, 0, 0.3);
+        }
+        
+        /* --- BARRA DE ESTADO --- */
+        #progressContainer {
+            margin-top: 15px;
+            display: none; /* Inicialmente oculto */
+            text-align: center;
+        }
+
+        #progressBar {
+            height: 18px;
+            background-color: #374151;
+            border-radius: 9px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        #progressFill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--mex-cempasuchil);
+            transition: width 3s linear; 
+            border-radius: 9px 0 0 9px;
+            box-shadow: 0 0 10px rgba(255, 183, 0, 0.8);
+        }
+        
+        #progressText {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            font-size: 0.95rem;
+            color: #9CA3AF; 
+            font-weight: 600;
+            background: var(--mex-container-bg);
+            border-top: 1px dashed #374151;
+        }
+
+        /* ======================================= */
+        /* === RESPONSIVE DESIGN (MÓVIL) === */
+        /* ======================================= */
+        @media (max-width: 600px) {
+            
+            body {
+                padding: 10px;
+                min-height: auto;
+            }
+
+            .app-container {
+                border-radius: 15px;
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 30px 15px 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+
+            .content-area {
+                padding: 20px 15px;
+            }
+            
+            label {
+                font-size: 1.0rem;
+            }
+
+            /* 1. ZONA DE CARGA */
+            .upload-zone {
+                padding: 30px 15px;
+            }
+            
+            .upload-icon {
+                font-size: 2.5rem;
+            }
+            
+            /* 2. LISTA DE ARCHIVOS */
+            #fileList li {
+                font-size: 0.9rem;
+            }
+
+            /* 3. AJUSTES (Settings Box) */
+            .settings-box {
+                padding: 20px 15px;
+                margin-top: 20px;
+            }
+            
+            .password-wrapper input {
+                 padding: 12px 40px 12px 15px;
+                 font-size: 1.0rem;
+            }
+
+            /* 4. BOTÓN DE ACCIÓN */
+            .btn-action {
+                padding: 18px;
+                font-size: 1.2rem;
+                margin-top: 25px;
+                box-shadow: 0 4px 0 #d99b00; 
+            }
+            
+            .btn-action:hover {
+                 transform: translateY(-1px);
+                 box-shadow: 0 5px 0 #d99b00;
+            }
+            
+            .btn-action:active {
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #d99b00;
+            }
+            
+            /* 5. BARRA DE PROGRESO */
+            #progressBar {
+                height: 15px;
+            }
+            #progressText {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>Oficina a PDF</h1>
+            <p class="subtitle">Convierte documentos de Word, Excel y PowerPoint a formatos PDF.</p>
+        </div>
+
+        <div class="content-area">
+            <label>Sube tus archivos de Office aquí:</label>
+            
+            <div class="upload-zone" id="drop-area">
+                <input type="file" id="fileInput" class="upload-file-input" multiple 
+                       accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx" onchange="displayFiles(this.files)">
+                
+                <i class="fa-solid fa-file-arrow-up upload-icon"></i>
+                <p class="upload-text">Arrastra y suelta o haz clic para subir.</p>
+                <p style="font-size: 0.9rem; color: #9CA3AF;">Soporte: DOC, DOCX, XLS, XLSX, PPT, PPTX</p>
+            </div>
+
+            <div id="fileList" style="margin-top: 15px;">
+                </div>
+
+
+            <div class="settings-box">
+                <label>🔒 Contraseña de Protección (Opcional)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="pdfPassword" placeholder="Escribe tu clave aquí">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('pdfPassword', this)"></i>
+                </div>
+            </div>
+
+            <button class="btn-action" id="actionButton" onclick="convertirOficina()">
+                CONVERTIR Y DESCARGAR PDF
+            </button>
+            
+            <div id="progressContainer">
+                <p id="progressText">Iniciando proceso de conversión...</p>
+                <div id="progressBar">
+                    <div id="progressFill"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Hecho en México | CONVERTIBLE MX
+        </div>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const actionButton = document.getElementById('actionButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        let filesToProcess = [];
+
+        // Función de utilidad para mostrar/ocultar contraseña
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconElement.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        // Función para simular la visualización de archivos seleccionados
+        function displayFiles(files) {
+            filesToProcess = Array.from(files);
+            const list = document.getElementById('fileList');
+            list.innerHTML = ''; 
+
+            if (filesToProcess.length === 0) {
+                return;
+            }
+
+            const ul = document.createElement('ul');
+
+            filesToProcess.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = `✅ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                ul.appendChild(li);
+            });
+            list.appendChild(ul);
+        }
+
+        // --- FUNCIÓN DE CONVERSIÓN CON BARRA DE PROGRESO ---
+        function convertirOficina() {
+            if (filesToProcess.length === 0) {
+                alert("¡Oye! Sube al menos un archivo de Office para convertir.");
+                return;
+            }
+            
+            // Deshabilitar botón y mostrar barra
+            actionButton.disabled = true;
+            actionButton.textContent = "CONVIRTIENDO DOCUMENTOS...";
+            progressContainer.style.display = 'block';
+            progressText.textContent = "Iniciando conexión con el servidor de conversión...";
+            progressFill.style.width = '0%';
+            progressFill.style.transitionDuration = '0s'; // Reset transition
+
+            // Simulación de los pasos de conversión
+            setTimeout(() => {
+                progressText.textContent = `Procesando ${filesToProcess.length} documentos.`;
+                progressFill.style.transitionDuration = '2s'; 
+                progressFill.style.width = '70%';
+            }, 300);
+
+            setTimeout(() => {
+                progressText.textContent = "Aplicando formato PDF y protección...";
+                progressFill.style.transitionDuration = '1s'; 
+                progressFill.style.width = '100%';
+            }, 2300);
+
+            setTimeout(() => {
+                // Finalizar proceso y mostrar resultado
+                finalizarProceso();
+            }, 3500); 
+        }
+
+        function finalizarProceso() {
+            const password = document.getElementById('pdfPassword').value;
+
+            let fileNames = filesToProcess.map(f => f.name).join(', ');
+            if(filesToProcess.length > 1) {
+                fileNames = filesToProcess.length + " archivos";
+            }
+            
+            // Restablecer el estado
+            actionButton.disabled = false;
+            actionButton.textContent = "CONVERTIR Y DESCARGAR PDF";
+            progressContainer.style.display = 'none';
+            progressFill.style.width = '0%'; 
+
+            alert(`
+                Procesando [CONVERTIBLE MX - OFICINA A PDF]:
+                Archivos: ${fileNames}
+                Contraseña: ${password ? 'Asignada ("' + password + '")' : 'No asignada'}
+
+                ---
+                ESTADO: 🟢 SIMULACIÓN EXITOSA.
+            `);
+        }
+
+        /* --- FUNCIONES DE DRAG & DROP --- */
+
+        // 1. Evitar el comportamiento por defecto
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 2. Resaltar la zona (usando colores del tema)
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropArea.style.borderColor = 'var(--mex-cempasuchil)'; 
+            dropArea.style.backgroundColor = '#374151'; 
+        }
+
+        function unhighlight(e) {
+            dropArea.style.borderColor = '#374151'; 
+            dropArea.style.backgroundColor = '#2D3748'; 
+        }
+
+        // 3. Manejar la caída de archivos
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+
+            document.getElementById('fileInput').files = files; // Asignar archivos al input
+            displayFiles(files);
+        }
+    </script>
+
+</body>
+</html>

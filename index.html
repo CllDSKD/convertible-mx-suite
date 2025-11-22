@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Central | CONVERTIBLE MX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Paleta de colores ajustada a Amarillo/Naranja de Énfasis */
+            --mex-cempasuchil: #FFB700; /* AMARILLO VIBRANTE (Acción/Énfasis) */
+            --mex-green: #009c3b;
+            --mex-red: #ce1126;
+            --mex-white: #ffffff;
+            --mex-dark-bg: #111827; /* Deep Slate Gray */
+            --mex-container-bg: #1F2937; /* Darker Slate Gray */
+            --text-light: #F9FAFB; /* Título y texto principal en oscuro */
+            --text-dark: #374151; /* Texto en elementos claros */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* Fondo con degradado radial sutil para profundidad */
+            background: radial-gradient(circle at 50% 100%, #172031 0%, var(--mex-dark-bg) 70%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-light);
+        }
+
+        .app-container {
+            background: var(--mex-container-bg); 
+            width: 100%;
+            max-width: 900px; /* Ancho más amplio para el portal */
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); 
+            overflow: hidden;
+            border: 1px solid #374151;
+        }
+
+        .header {
+            padding: 40px 20px 25px 20px;
+            text-align: center;
+            background: var(--mex-container-bg); 
+            border-bottom: 1px dashed #374151;
+        }
+
+        h1 {
+            color: var(--text-light); 
+            margin: 0;
+            font-weight: 900;
+            font-size: 3rem; 
+            text-transform: uppercase;
+            letter-spacing: 3px; 
+            /* Efecto de brillo futurista amarillo */
+            text-shadow: 0 0 10px rgba(255, 183, 0, 0.8); 
+        }
+
+        p.subtitle {
+            color: #9CA3AF; 
+            font-size: 1.2rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* --- GRID DE APLICACIONES --- */
+        .app-grid {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+        }
+
+        .app-card {
+            background-color: #2D3748; /* Fondo más claro para la tarjeta */
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-light);
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+            border: 1px solid #374151;
+            /* Sombra suave */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            background-color: #374151; /* Oscurecer al pasar el ratón */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 183, 0, 0.4); 
+        }
+
+        .app-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            /* Aplicamos un color base y un brillo */
+            text-shadow: 0 0 8px currentColor;
+        }
+
+        .app-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .app-card p {
+            font-size: 0.95rem;
+            color: #9CA3AF;
+            margin: 0;
+        }
+
+        /* Colores específicos para cada ícono */
+        .i-green { color: var(--mex-green); } /* Fusionador */
+        .i-red { color: var(--mex-red); } /* Divisor */
+        .i-office { color: #2A5699; } /* Oficina (Word/Excel/PPT - Azul Office) */
+        .i-blue { color: #0056D6; } /* CAD (Azul de plano) */
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            font-size: 0.95rem;
+            color: #9CA3AF; 
+            font-weight: 600;
+            background: var(--mex-container-bg);
+            border-top: 1px dashed #374151;
+        }
+
+
+        /* ======================================= */
+        /* === RESPONSIVE DESIGN (MÓVIL) === */
+        /* ======================================= */
+        @media (max-width: 600px) {
+            
+            body {
+                padding: 10px;
+                min-height: auto;
+            }
+
+            .app-container {
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 30px 15px 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem; /* Título más pequeño en móvil */
+                letter-spacing: 2px;
+            }
+
+            p.subtitle {
+                font-size: 1.0rem;
+            }
+
+            /* El grid de aplicaciones se adapta automáticamente gracias a auto-fit */
+            .app-grid {
+                padding: 20px 15px;
+                gap: 20px;
+            }
+            
+            .app-card {
+                padding: 20px;
+            }
+
+            .app-icon {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+            .app-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .app-card p {
+                font-size: 0.85rem;
+            }
+
+            .footer {
+                padding: 15px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>CONVERTIBLE MX</h1>
+            <p class="subtitle">La suite de herramientas más potentes para PDF y CAD.</p>
+        </div>
+
+        <div class="app-grid">
+            
+            <a href="fusionador.html" class="app-card">
+                <i class="fa-solid fa-layer-group app-icon i-green"></i>
+                <h3>Fusionador Total</h3>
+                <p>Combina múltiples documentos PDF en uno solo.</p>
+            </a>
+            
+            <a href="divisor_pdf.html" class="app-card">
+                <i class="fa-solid fa-scissors app-icon i-red"></i>
+                <h3>Divisor Visual</h3>
+                <p>Extrae páginas de un PDF, o separa por rangos.</p>
+            </a>
+
+            <a href="oficina_a_pdf.html" class="app-card">
+                <i class="fa-solid fa-file-powerpoint app-icon i-office"></i>
+                <h3>Oficina a PDF</h3>
+                <p>Convierte documentos de Word, Excel y PPT a PDF.</p>
+            </a>
+
+            <a href="pdf_a_dwg.html" class="app-card">
+                <i class="fa-solid fa-ruler-combined app-icon i-blue"></i>
+                <h3>PDF a DWG</h3>
+                <p>Convierte planos vectoriales de PDF a archivos CAD editables.</p>
+            </a>
+
+        </div>
+
+        <div class="footer">
+            Hecho en México | CONVERTIBLE MX
+        </div>
+    </div>
+    
+    <script>
+        // NOTA: Asegúrate de que los archivos fusionador.html, divisor_pdf.html, 
+        // oficina_a_pdf.html y pdf_a_dwg.html contengan los códigos finales 
+        // oscuros y adaptables que te proporcioné.
+    </script>
+
+</body>
+</html>

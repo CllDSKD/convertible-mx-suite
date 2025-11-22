@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fusionador Total | CONVERTIBLE MX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Paleta de colores FUTURISTA */
+            --mex-cempasuchil: #FFB700; /* AMARILLO VIBRANTE (Acción/Énfasis) */
+            --mex-green: #009c3b;
+            --mex-red: #ce1126;
+            --mex-white: #ffffff;
+            --mex-dark-bg: #111827; /* Deep Slate Gray */
+            --mex-container-bg: #1F2937; /* Darker Slate Gray */
+            --text-light: #F9FAFB; /* Título y texto principal en oscuro */
+            --text-dark: #374151; /* Texto en elementos claros */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at 50% 100%, #172031 0%, var(--mex-dark-bg) 70%);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: var(--mex-container-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); 
+            overflow: hidden;
+            border: 1px solid #374151;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            padding: 40px 20px 25px 20px;
+            text-align: center;
+            background: var(--mex-container-bg); 
+            border-bottom: 1px dashed #374151;
+        }
+
+        h1 {
+            color: var(--text-light);
+            margin: 0;
+            font-weight: 900;
+            font-size: 2.5rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px; 
+            text-shadow: 0 0 10px rgba(255, 183, 0, 0.6); 
+        }
+
+        p.subtitle {
+            color: #9CA3AF; 
+            font-size: 1.1rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* --- ZONA DE CARGA DE ARCHIVOS --- */
+        .upload-zone {
+            border: 3px dashed #374151; 
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            background-color: #2D3748;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--mex-cempasuchil);
+            background-color: #374151;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--mex-green);
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .upload-file-input {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        /* --- FIN ZONA DE CARGA DE ARCHIVOS --- */
+
+        /* --- ZONA DE REORDENAMIENTO --- */
+        #reorderZone {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+            padding: 15px;
+            border: 1px solid #374151;
+            border-radius: 15px;
+            background-color: #2D3748;
+            min-height: 100px;
+        }
+        
+        .pdf-card {
+            background-color: var(--mex-white); 
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: grab;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+        
+        .pdf-card:hover {
+            box-shadow: 0 4px 15px rgba(255, 183, 0, 0.5);
+        }
+
+        .pdf-thumbnail {
+            width: 100%;
+            height: 120px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #6B7280;
+            overflow: hidden;
+        }
+        
+        .pdf-thumbnail i {
+            font-size: 2.5rem;
+        }
+
+        /* Colores específicos para tipos de archivo */
+        .pdf-card[data-file-type="pdf"] .pdf-thumbnail i { color: var(--mex-red); }
+        .pdf-card[data-file-type="word"] .pdf-thumbnail i { color: #2B579A; }
+        .pdf-card[data-file-type="excel"] .pdf-thumbnail i { color: var(--mex-green); }
+        .pdf-card[data-file-type="powerpoint"] .pdf-thumbnail i { color: #D24726; }
+        .pdf-card[data-file-type="image"] .pdf-thumbnail i { color: var(--mex-cempasuchil); }
+        .pdf-card[data-file-type="text"] .pdf-thumbnail i { color: #808080; } 
+
+
+        .pdf-card span {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--mex-red);
+            color: var(--mex-white);
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        }
+        /* --- FIN ZONA DE REORDENAMIENTO --- */
+        
+        /* --- BARRA DE ESTADO --- */
+        #progressContainer {
+            margin-top: 15px;
+            display: none; 
+            text-align: center;
+        }
+
+        #progressBar {
+            height: 18px;
+            background-color: #374151;
+            border-radius: 9px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        #progressFill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--mex-cempasuchil);
+            transition: width 3s linear; 
+            border-radius: 9px 0 0 9px;
+            box-shadow: 0 0 10px rgba(255, 183, 0, 0.8);
+        }
+        
+        #progressText {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        /* --- SECCIÓN DE AJUSTES --- */
+        .settings-box {
+            background-color: #2D3748; 
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 1px solid #374151;
+        }
+
+        /* Contenedor del campo de contraseña */
+        .password-wrapper {
+            position: relative;
+            margin-top: 5px;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding: 15px 40px 15px 15px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            background-color: #374151;
+            color: var(--text-light);
+        }
+        
+        /* Icono de mostrar/ocultar */
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9CA3AF;
+            font-size: 1.1rem;
+            padding: 5px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--mex-cempasuchil);
+        }
+        
+        /* Input de texto simple */
+        .settings-box input[type="text"], .settings-box select {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            background-color: #374151;
+            color: var(--text-light);
+            margin-top: 5px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23F9FAFB" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+
+        .btn-action {
+            background-color: var(--mex-cempasuchil);
+            color: #3d2c00;
+            width: 100%;
+            padding: 22px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 6px 0 #d99b00, 0 0 20px rgba(255, 183, 0, 0.5); 
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #d99b00, 0 0 25px rgba(255, 183, 0, 0.8);
+            background-color: #ffc11a;
+        }
+
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d99b00;
+        }
+        
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 6px 0 #d99b00, 0 0 10px rgba(255, 183, 0, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            font-size: 0.95rem;
+            color: #9CA3AF; 
+            font-weight: 600;
+            background: var(--mex-container-bg);
+            border-top: 1px dashed #374151;
+        }
+
+        /* ======================================= */
+        /* === RESPONSIVE DESIGN (MÓVIL) === */
+        /* ======================================= */
+        @media (max-width: 600px) {
+            
+            body {
+                padding: 10px; /* Reducir padding del body */
+                min-height: auto;
+            }
+
+            .app-container {
+                border-radius: 15px; /* Bordes más pequeños en móvil */
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 30px 15px 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2rem; /* Reducir tamaño del título */
+            }
+
+            p.subtitle {
+                font-size: 1.0rem;
+            }
+
+            .content-area {
+                padding: 20px 15px;
+            }
+            
+            label {
+                font-size: 1.0rem;
+            }
+
+            /* 1. ZONA DE REORDENAMIENTO */
+            #reorderZone {
+                padding: 10px;
+                gap: 10px;
+                /* El flujo wrap ya hace el resto, pero podemos hacer las tarjetas más pequeñas */
+            }
+            
+            .pdf-card {
+                width: 120px; /* Reducir ancho de las tarjetas */
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+            
+            .pdf-thumbnail {
+                height: 90px;
+            }
+
+            .pdf-card span {
+                font-size: 0.75rem;
+            }
+            
+            .remove-btn {
+                top: -3px;
+                right: -3px;
+                width: 18px;
+                height: 18px;
+                font-size: 0.6rem;
+            }
+
+            /* 2. AJUSTES (Settings Box) */
+            .settings-box {
+                padding: 20px 15px;
+                margin-top: 20px;
+            }
+            
+            .settings-box input, .settings-box select {
+                padding: 12px;
+                font-size: 1.0rem;
+            }
+
+            /* 3. BOTÓN DE ACCIÓN */
+            .btn-action {
+                padding: 18px;
+                font-size: 1.2rem;
+                margin-top: 25px;
+                box-shadow: 0 4px 0 #d99b00, 0 0 15px rgba(255, 183, 0, 0.4); 
+            }
+            
+            .btn-action:hover {
+                 transform: translateY(-1px);
+                 box-shadow: 0 5px 0 #d99b00, 0 0 20px rgba(255, 183, 0, 0.6);
+            }
+            
+            .btn-action:active {
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #d99b00;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>Fusionador Total</h1>
+            <p class="subtitle">Arrastra, reordena y combina PDFs, Office, Imágenes y más en un solo archivo final.</p>
+        </div>
+
+        <div class="content-area">
+            <label>Sube los archivos a fusionar aquí:</label>
+            
+            <div class="upload-zone" id="drop-area">
+                <input type="file" id="fileInput" class="upload-file-input" multiple 
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/jpeg,image/png,text/plain" 
+                       onchange="addFilesFromInput(this.files)">
+                
+                <i class="fa-solid fa-layer-group upload-icon"></i>
+                <p class="upload-text">Arrastra y suelta o haz clic para subir.</p>
+                <p style="font-size: 0.9rem; color: #9CA3AF;">Soporte: PDF, Word, Excel, PPT, JPG, PNG, TXT.</p>
+            </div>
+
+            <label id="listLabel" style="margin-top: 25px;">📑 Orden de los Documentos:</label>
+            <div id="reorderZone">
+                <p style="color: #9CA3AF; font-size: 0.95rem; margin: 0 auto;">Arrastra tus archivos para empezar a reordenar.</p>
+            </div>
+
+
+            <div class="settings-box">
+                <label>🔒 Contraseña de Protección al PDF Final (Opcional)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="pdfPassword" placeholder="Escribe tu clave aquí">
+                    <i class="fa-solid fa-eye password-toggle" onclick="togglePasswordVisibility('pdfPassword', this)"></i>
+                </div>
+                
+                <label style="margin-top: 20px;">💾 Nombre del Archivo Final:</label>
+                <input type="text" id="outputFilename" placeholder="Mi_PDF_Fusionado.pdf" value="Fusionado_ConvertibleMX.pdf">
+
+                <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
+                    <div style="flex: 1;">
+                        <label for="outputSize" style="font-weight: 500; margin-bottom: 5px; color: var(--text-light);">Tamaño de Página:</label>
+                        <select id="outputSize">
+                            <option value="A4">A4 (Estándar Global)</option>
+                            <option value="Carta">Carta (Estándar América)</option>
+                            <option value="Auto">Automático</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="compressionLevel" style="font-weight: 500; margin-bottom: 5px; color: var(--text-light);">Compresión:</label>
+                        <select id="compressionLevel">
+                            <option value="high">Alta (Optimizar Tamaño)</option>
+                            <option value="medium">Media</option>
+                            <option value="none">Sin Compresión</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-action" id="actionButton" onclick="fusionarPDFs()">
+                FUSIONAR Y DESCARGAR PDF
+            </button>
+            
+            <div id="progressContainer">
+                <p id="progressText">Iniciando conversión y fusión...</p>
+                <div id="progressBar">
+                    <div id="progressFill"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Hecho en México | CONVERTIBLE MX
+        </div>
+    </div>
+
+    <script>
+        let loadedFiles = [];
+        let fileIdCounter = 0;
+        const reorderZone = document.getElementById('reorderZone');
+        const dropArea = document.getElementById('drop-area');
+        const actionButton = document.getElementById('actionButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const listLabel = document.getElementById('listLabel');
+        
+        // Función de utilidad para mostrar/ocultar contraseña
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconElement.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        // Determina el tipo de archivo (para el icono)
+        function getFileType(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            if (ext === 'pdf') return 'pdf';
+            if (ext === 'doc' || ext === 'docx') return 'word';
+            if (ext === 'xls' || ext === 'xlsx') return 'excel';
+            if (ext === 'ppt' || ext === 'pptx') return 'powerpoint';
+            if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
+            if (ext === 'txt') return 'text';
+            return 'other';
+        }
+
+        // Determina el icono de FontAwesome basado en el tipo
+        function getFileIconClass(fileType) {
+            if (fileType === 'pdf') return 'fa-file-pdf';
+            if (fileType === 'word') return 'fa-file-word';
+            if (fileType === 'excel') return 'fa-file-excel';
+            if (fileType === 'powerpoint') return 'fa-file-powerpoint';
+            if (fileType === 'image') return 'fa-file-image';
+            if (fileType === 'text') return 'fa-file-lines';
+            return 'fa-file';
+        }
+
+        // Función principal para añadir archivos
+        function addFilesFromInput(files) {
+            
+            if (loadedFiles.length === 0 && files.length > 0) {
+                 reorderZone.innerHTML = ''; 
+            }
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileType = getFileType(file.name);
+                
+                if (fileType !== 'other') {
+                    const id = fileIdCounter++;
+                    loadedFiles.push({ id, file, name: file.name, type: fileType });
+                    renderFileCard(id, file.name, fileType);
+                } else {
+                    console.warn(`El archivo "${file.name}" no es compatible y fue omitido.`);
+                }
+            }
+            
+            if (loadedFiles.length === 0) {
+                reorderZone.innerHTML = '<p style="color: #9CA3AF; font-size: 0.95rem; margin: 0 auto;">Arrastra tus archivos para empezar a reordenar.</p>';
+            }
+        }
+
+        // Renderiza la tarjeta de archivo con el icono correcto
+        function renderFileCard(id, name, type) {
+            const iconClass = getFileIconClass(type);
+            
+            const card = document.createElement('div');
+            card.className = 'pdf-card';
+            card.draggable = true;
+            card.dataset.fileId = id;
+            card.dataset.fileType = type;
+            
+            card.innerHTML = `
+                <div class="pdf-thumbnail" id="thumb-${id}">
+                    <i class="fa-solid ${iconClass}"></i>
+                </div>
+                <span>${name}</span>
+                <button class="remove-btn" onclick="removeFile(${id})">X</button>
+            `;
+            
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('dragleave', handleDragLeave);
+            card.addEventListener('drop', handleDropSort);
+            
+            reorderZone.appendChild(card);
+        }
+        
+        function removeFile(id) {
+            loadedFiles = loadedFiles.filter(f => f.id !== id);
+            document.querySelector(`.pdf-card[data-file-id="${id}"]`).remove();
+            
+            if (loadedFiles.length === 0) {
+                reorderZone.innerHTML = '<p style="color: #9CA3AF; font-size: 0.95rem; margin: 0 auto;">Arrastra tus archivos para empezar a reordenar.</p>';
+            }
+        }
+
+        // Simulación de descarga y fusión (con barra de progreso)
+        function fusionarPDFs() {
+            if (loadedFiles.length < 2) {
+                alert("¡Oye! Necesitas subir al menos dos archivos para fusionar.");
+                return;
+            }
+
+            const outputMode = document.getElementById('outputSize').value;
+            const compression = document.getElementById('compressionLevel').value;
+            
+            // Deshabilitar botón y mostrar barra
+            actionButton.disabled = true;
+            actionButton.textContent = "PROCESANDO ARCHIVOS...";
+            progressContainer.style.display = 'block';
+            progressText.textContent = "Iniciando conversión y fusión...";
+            progressFill.style.width = '0%';
+            progressFill.style.transitionDuration = '0s'; // Reset transition
+            
+            // Simulación de los pasos de conversión
+            setTimeout(() => {
+                progressText.textContent = "Paso 1/2: Convirtiendo archivos a PDF (Office, Img, TXT)...";
+                progressFill.style.transitionDuration = '1.5s'; 
+                progressFill.style.width = '50%';
+            }, 500);
+
+            setTimeout(() => {
+                progressText.textContent = `Paso 2/2: Fusionando, aplicando ${outputMode.toUpperCase()} y ${compression.toUpperCase()}...`;
+                progressFill.style.transitionDuration = '1.5s';
+                progressFill.style.width = '100%';
+            }, 2000);
+
+            setTimeout(() => {
+                // Finalizar proceso y mostrar resultado
+                finalizarProceso();
+            }, 3500);
+        }
+
+        function finalizarProceso() {
+            const outputFilename = document.getElementById('outputFilename').value || 'Fusionado_ConvertibleMX.pdf';
+            const password = document.getElementById('pdfPassword').value; 
+            
+            const fileOrder = loadedFiles.map(f => `[${f.type.toUpperCase()}] ${f.name}`).join(' -> ');
+            
+            // Restablecer el estado
+            actionButton.disabled = false;
+            actionButton.textContent = "FUSIONAR Y DESCARGAR PDF";
+            progressContainer.style.display = 'none';
+            progressFill.style.width = '0%'; 
+
+            alert(`
+                Procesando [CONVERTIBLE MX - FUSIONADOR TOTAL]:
+                
+                --- DETALLES DEL PROCESO ---
+                Archivos a fusionar: ${loadedFiles.length}
+                Orden de fusión: ${fileOrder}
+                
+                --- OPCIONES DE SALIDA ---
+                Nombre: ${outputFilename}
+                Contraseña: ${password ? 'Asignada' : 'No asignada'}
+
+                ---
+                ESTADO: 🟢 SIMULACIÓN EXITOSA.
+            `);
+        }
+        
+        // --- DRAG and DROP Reordenamiento de Tarjetas (Lógica) ---
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            setTimeout(() => this.style.opacity = '0.4', 0);
+        }
+        
+        function handleDragEnd(e) {
+            this.style.opacity = '1';
+            draggedItem = null;
+            document.querySelectorAll('.pdf-card').forEach(card => card.style.border = '2px solid #ddd');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            if (this !== draggedItem) {
+                 this.style.border = '2px solid var(--mex-cempasuchil)'; 
+            }
+        }
+        
+        function handleDragLeave(e) {
+            this.style.border = '2px solid #ddd';
+        }
+
+        function handleDropSort(e) {
+            e.stopPropagation();
+            this.style.border = '2px solid #ddd';
+            
+            if (draggedItem !== this) {
+                const draggedId = Number(draggedItem.dataset.fileId);
+                const droppedId = Number(this.dataset.fileId);
+
+                const draggedIndex = loadedFiles.findIndex(f => f.id === draggedId);
+                const droppedIndex = loadedFiles.findIndex(f => f.id === droppedId);
+
+                const [movedFile] = loadedFiles.splice(draggedIndex, 1);
+                loadedFiles.splice(droppedIndex, 0, movedFile);
+
+                const parent = reorderZone;
+                const droppedElement = this;
+                const draggedElement = draggedItem;
+
+                if (draggedIndex > droppedIndex) {
+                    parent.insertBefore(draggedElement, droppedElement);
+                } else {
+                    parent.insertBefore(draggedElement, droppedElement.nextSibling);
+                }
+            }
+        }
+        
+        // --- DRAG and DROP Global (para la zona de carga) ---
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropArea.style.borderColor = 'var(--mex-cempasuchil)'; 
+            dropArea.style.backgroundColor = '#374151'; 
+        }
+
+        function unhighlight(e) {
+            dropArea.style.borderColor = '#374151'; 
+            dropArea.style.backgroundColor = '#2D3748'; 
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            
+            addFilesFromInput(files);
+        }
+    </script>
+
+</body>
+</html>
