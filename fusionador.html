@@ -512,268 +512,126 @@
         </div>
     </div>
 
-    <script>
-        let loadedFiles = [];
-        let fileIdCounter = 0;
-        const reorderZone = document.getElementById('reorderZone');
-        const dropArea = document.getElementById('drop-area');
-        const actionButton = document.getElementById('actionButton');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        const listLabel = document.getElementById('listLabel');
+   <script>
+    let loadedFiles = [];
+    let fileIdCounter = 0;
+    const reorderZone = document.getElementById('reorderZone');
+    const dropArea = document.getElementById('drop-area');
+    const actionButton = document.getElementById('actionButton');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const listLabel = document.getElementById('listLabel');
+    
+    // IMPORTANTE: Esta es la URL de tu servidor real. 
+    // DEBES CAMBIAR ESTO cuando el servidor esté listo.
+    const BACKEND_URL = 'https://tu-url-de-servidor.com/api/fusionar'; 
+
+    // Función de utilidad para mostrar/ocultar contraseña (Mantenida)
+    function togglePasswordVisibility(inputId, iconElement) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            iconElement.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            iconElement.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+    
+    // [Se omiten funciones auxiliares como getFileType, getFileIconClass, etc., para brevedad]
+
+    // ... [Aquí irían las funciones getFileType, getFileIconClass, addFilesFromInput, renderFileCard, removeFile] ...
+    // Asegúrate de conservarlas de tu archivo original.
+
+    // ------------------------------------------------------------------
+    // --- FUNCIÓN CRÍTICA: ENVÍO REAL AL BACKEND ---
+    // ------------------------------------------------------------------
+    async function fusionarPDFs() {
+        if (loadedFiles.length < 2) {
+            alert("¡Oye! Necesitas subir al menos dos archivos para fusionar.");
+            return;
+        }
+
+        const outputMode = document.getElementById('outputSize').value;
+        const compression = document.getElementById('compressionLevel').value;
         
-        // Función de utilidad para mostrar/ocultar contraseña
-        function togglePasswordVisibility(inputId, iconElement) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                iconElement.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                iconElement.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        }
-        
-        // Determina el tipo de archivo (para el icono)
-        function getFileType(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            if (ext === 'pdf') return 'pdf';
-            if (ext === 'doc' || ext === 'docx') return 'word';
-            if (ext === 'xls' || ext === 'xlsx') return 'excel';
-            if (ext === 'ppt' || ext === 'pptx') return 'powerpoint';
-            if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
-            if (ext === 'txt') return 'text';
-            return 'other';
-        }
+        // 1. Deshabilitar botón y mostrar barra
+        actionButton.disabled = true;
+        actionButton.textContent = "CONECTANDO CON EL SERVIDOR...";
+        progressContainer.style.display = 'block';
+        progressText.textContent = "Iniciando envío de archivos...";
+        progressFill.style.width = '0%';
+        progressFill.style.transitionDuration = '0s';
 
-        // Determina el icono de FontAwesome basado en el tipo
-        function getFileIconClass(fileType) {
-            if (fileType === 'pdf') return 'fa-file-pdf';
-            if (fileType === 'word') return 'fa-file-word';
-            if (fileType === 'excel') return 'fa-file-excel';
-            if (fileType === 'powerpoint') return 'fa-file-powerpoint';
-            if (fileType === 'image') return 'fa-file-image';
-            if (fileType === 'text') return 'fa-file-lines';
-            return 'fa-file';
-        }
-
-        // Función principal para añadir archivos
-        function addFilesFromInput(files) {
-            
-            if (loadedFiles.length === 0 && files.length > 0) {
-                 reorderZone.innerHTML = ''; 
-            }
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const fileType = getFileType(file.name);
-                
-                if (fileType !== 'other') {
-                    const id = fileIdCounter++;
-                    loadedFiles.push({ id, file, name: file.name, type: fileType });
-                    renderFileCard(id, file.name, fileType);
-                } else {
-                    console.warn(`El archivo "${file.name}" no es compatible y fue omitido.`);
-                }
-            }
-            
-            if (loadedFiles.length === 0) {
-                reorderZone.innerHTML = '<p style="color: #9CA3AF; font-size: 0.95rem; margin: 0 auto;">Arrastra tus archivos para empezar a reordenar.</p>';
-            }
-        }
-
-        // Renderiza la tarjeta de archivo con el icono correcto
-        function renderFileCard(id, name, type) {
-            const iconClass = getFileIconClass(type);
-            
-            const card = document.createElement('div');
-            card.className = 'pdf-card';
-            card.draggable = true;
-            card.dataset.fileId = id;
-            card.dataset.fileType = type;
-            
-            card.innerHTML = `
-                <div class="pdf-thumbnail" id="thumb-${id}">
-                    <i class="fa-solid ${iconClass}"></i>
-                </div>
-                <span>${name}</span>
-                <button class="remove-btn" onclick="removeFile(${id})">X</button>
-            `;
-            
-            card.addEventListener('dragstart', handleDragStart);
-            card.addEventListener('dragend', handleDragEnd);
-            card.addEventListener('dragover', handleDragOver);
-            card.addEventListener('dragleave', handleDragLeave);
-            card.addEventListener('drop', handleDropSort);
-            
-            reorderZone.appendChild(card);
-        }
-        
-        function removeFile(id) {
-            loadedFiles = loadedFiles.filter(f => f.id !== id);
-            document.querySelector(`.pdf-card[data-file-id="${id}"]`).remove();
-            
-            if (loadedFiles.length === 0) {
-                reorderZone.innerHTML = '<p style="color: #9CA3AF; font-size: 0.95rem; margin: 0 auto;">Arrastra tus archivos para empezar a reordenar.</p>';
-            }
-        }
-
-        // Simulación de descarga y fusión (con barra de progreso)
-        function fusionarPDFs() {
-            if (loadedFiles.length < 2) {
-                alert("¡Oye! Necesitas subir al menos dos archivos para fusionar.");
-                return;
-            }
-
-            const outputMode = document.getElementById('outputSize').value;
-            const compression = document.getElementById('compressionLevel').value;
-            
-            // Deshabilitar botón y mostrar barra
-            actionButton.disabled = true;
-            actionButton.textContent = "PROCESANDO ARCHIVOS...";
-            progressContainer.style.display = 'block';
-            progressText.textContent = "Iniciando conversión y fusión...";
-            progressFill.style.width = '0%';
-            progressFill.style.transitionDuration = '0s'; // Reset transition
-            
-            // Simulación de los pasos de conversión
-            setTimeout(() => {
-                progressText.textContent = "Paso 1/2: Convirtiendo archivos a PDF (Office, Img, TXT)...";
-                progressFill.style.transitionDuration = '1.5s'; 
-                progressFill.style.width = '50%';
-            }, 500);
-
-            setTimeout(() => {
-                progressText.textContent = `Paso 2/2: Fusionando, aplicando ${outputMode.toUpperCase()} y ${compression.toUpperCase()}...`;
-                progressFill.style.transitionDuration = '1.5s';
-                progressFill.style.width = '100%';
-            }, 2000);
-
-            setTimeout(() => {
-                // Finalizar proceso y mostrar resultado
-                finalizarProceso();
-            }, 3500);
-        }
-
-        function finalizarProceso() {
-            const outputFilename = document.getElementById('outputFilename').value || 'Fusionado_ConvertibleMX.pdf';
-            const password = document.getElementById('pdfPassword').value; 
-            
-            const fileOrder = loadedFiles.map(f => `[${f.type.toUpperCase()}] ${f.name}`).join(' -> ');
-            
-            // Restablecer el estado
-            actionButton.disabled = false;
-            actionButton.textContent = "FUSIONAR Y DESCARGAR PDF";
-            progressContainer.style.display = 'none';
-            progressFill.style.width = '0%'; 
-
-            alert(`
-                Procesando [CONVERTIBLE MX - FUSIONADOR TOTAL]:
-                
-                --- DETALLES DEL PROCESO ---
-                Archivos a fusionar: ${loadedFiles.length}
-                Orden de fusión: ${fileOrder}
-                
-                --- OPCIONES DE SALIDA ---
-                Nombre: ${outputFilename}
-                Contraseña: ${password ? 'Asignada' : 'No asignada'}
-
-                ---
-                ESTADO: 🟢 SIMULACIÓN EXITOSA.
-            `);
-        }
-        
-        // --- DRAG and DROP Reordenamiento de Tarjetas (Lógica) ---
-        let draggedItem = null;
-
-        function handleDragStart(e) {
-            draggedItem = this;
-            setTimeout(() => this.style.opacity = '0.4', 0);
-        }
-        
-        function handleDragEnd(e) {
-            this.style.opacity = '1';
-            draggedItem = null;
-            document.querySelectorAll('.pdf-card').forEach(card => card.style.border = '2px solid #ddd');
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            if (this !== draggedItem) {
-                 this.style.border = '2px solid var(--mex-cempasuchil)'; 
-            }
-        }
-        
-        function handleDragLeave(e) {
-            this.style.border = '2px solid #ddd';
-        }
-
-        function handleDropSort(e) {
-            e.stopPropagation();
-            this.style.border = '2px solid #ddd';
-            
-            if (draggedItem !== this) {
-                const draggedId = Number(draggedItem.dataset.fileId);
-                const droppedId = Number(this.dataset.fileId);
-
-                const draggedIndex = loadedFiles.findIndex(f => f.id === draggedId);
-                const droppedIndex = loadedFiles.findIndex(f => f.id === droppedId);
-
-                const [movedFile] = loadedFiles.splice(draggedIndex, 1);
-                loadedFiles.splice(droppedIndex, 0, movedFile);
-
-                const parent = reorderZone;
-                const droppedElement = this;
-                const draggedElement = draggedItem;
-
-                if (draggedIndex > droppedIndex) {
-                    parent.insertBefore(draggedElement, droppedElement);
-                } else {
-                    parent.insertBefore(draggedElement, droppedElement.nextSibling);
-                }
-            }
-        }
-        
-        // --- DRAG and DROP Global (para la zona de carga) ---
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
+        // 2. Preparar los datos para el envío (FormData)
+        const formData = new FormData();
+        loadedFiles.forEach(item => {
+            // Clave: 'files'. El servidor esperará recibir los archivos bajo este nombre.
+            formData.append('files', item.file, item.name);
         });
 
-        function preventDefaults (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        // Añadir opciones de configuración
+        formData.append('password', document.getElementById('pdfPassword').value);
+        formData.append('outputFilename', document.getElementById('outputFilename').value);
+        formData.append('outputSize', outputMode);
+        formData.append('compressionLevel', compression);
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
+        try {
+            // 3. ENVIAR LA PETICIÓN REAL AL BACKEND
+            const response = await fetch(BACKEND_URL, {
+                method: 'POST',
+                body: formData, // El objeto FormData contiene los archivos
+            });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight(e) {
-            dropArea.style.borderColor = 'var(--mex-cempasuchil)'; 
-            dropArea.style.backgroundColor = '#374151'; 
-        }
-
-        function unhighlight(e) {
-            dropArea.style.borderColor = '#374151'; 
-            dropArea.style.backgroundColor = '#2D3748'; 
-        }
-
-        dropArea.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            let dt = e.dataTransfer;
-            let files = dt.files;
+            // 4. Lanza un error si el servidor devuelve un código 4xx o 5xx
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(`Error ${response.status}: ${errorData || 'Fallo de procesamiento en el servidor.'}`);
+            }
             
-            addFilesFromInput(files);
+            // Simulación de barra de progreso durante la espera de la respuesta
+            progressText.textContent = "Procesamiento completado. Preparando descarga...";
+            progressFill.style.transitionDuration = '1.5s'; 
+            progressFill.style.width = '100%';
+
+
+            // 5. RECIBIR EL ARCHIVO DE VUELTA Y FORZAR LA DESCARGA
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = document.getElementById('outputFilename').value || 'Fusionado_Resultado.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            
+            // 6. Finalizar la UI con éxito
+            finalizarProceso(true);
+
+        } catch (error) {
+            // Si hay un error de conexión o del servidor:
+            console.error('Error durante la fusión/conexión:', error);
+            alert(`🚨 ERROR CRÍTICO: No se pudo completar la fusión.\nDetalles: ${error.message}`);
+            finalizarProceso(false);
         }
-    </script>
+    }
+    
+    // Función que limpia la barra de progreso y re-activa el botón
+    function finalizarProceso(exito) {
+        actionButton.disabled = false;
+        actionButton.textContent = "FUSIONAR Y DESCARGAR PDF";
+        progressContainer.style.display = 'none';
+        progressFill.style.width = '0%'; 
+        
+        if (exito) {
+             // Opcional: recargar la lista de archivos o mostrar mensaje de éxito
+        }
+    }
+    // ... [Aquí iría el resto del código JavaScript (Drag & Drop, etc.)] ...
+    // Asegúrate de conservarlas de tu archivo original.
+</script>
 
 </body>
+
 </html>
